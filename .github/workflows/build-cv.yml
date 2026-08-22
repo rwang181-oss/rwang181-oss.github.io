@@ -1,0 +1,33 @@
+name: Build CV PDF
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cv-data/**'
+      - '.github/workflows/build-cv.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebuild CV PDF
+        shell: bash
+        run: |
+          cat cv-data/part*.txt | tr -d '\n\r ' | base64 --decode > Ruo_Wang_CV.pdf
+          test "$(head -c 4 Ruo_Wang_CV.pdf)" = "%PDF"
+          test -s Ruo_Wang_CV.pdf
+      - name: Commit PDF
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Ruo_Wang_CV.pdf
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Add downloadable CV PDF"
+          git push
